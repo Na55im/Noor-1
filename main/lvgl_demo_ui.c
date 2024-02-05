@@ -160,32 +160,32 @@ void driver_init(void)
 
 static void set_mode_work(void) 
 {
-    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH3_CHANNEL, (settings[work_direct_cw] * 1024) / 100);
+    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH3_CHANNEL, (settings[work_direct_cw] * 900) / 100);
     ledc_update_duty(LEDC_LS_MODE, LEDC_LS_CH3_CHANNEL);
 
-    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH4_CHANNEL, (settings[work_direct_cw] * 1024) / 100);
+    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH4_CHANNEL, (settings[work_direct_cw] * 900) / 100);
     ledc_update_duty(LEDC_LS_MODE, LEDC_LS_CH4_CHANNEL);
 
-    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH1_CHANNEL, (settings[work_indirect_cw] * 1024) / 100);
+    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH1_CHANNEL, (settings[work_indirect_cw] * 900) / 100);
     ledc_update_duty(LEDC_LS_MODE, LEDC_LS_CH1_CHANNEL);
 
-    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH2_CHANNEL, (settings[work_indirect_ww] * 1024) / 100);
+    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH2_CHANNEL, (settings[work_indirect_ww] * 900) / 100);
     ledc_update_duty(LEDC_LS_MODE, LEDC_LS_CH2_CHANNEL);
 }
 
 
 static void set_mode_meditation(void) 
 {
-    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH3_CHANNEL, (settings[med_direct_cw] * 1024) / 100);
+    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH3_CHANNEL, (settings[med_direct_cw] * 900) / 100);
     ledc_update_duty(LEDC_LS_MODE, LEDC_LS_CH3_CHANNEL);
 
-    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH4_CHANNEL, (settings[med_direct_cw] * 1024) / 100);
+    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH4_CHANNEL, (settings[med_direct_cw] * 900) / 100);
     ledc_update_duty(LEDC_LS_MODE, LEDC_LS_CH4_CHANNEL);
 
-    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH1_CHANNEL, (settings[med_indirect_cw] * 1024) / 100);
+    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH1_CHANNEL, (settings[med_indirect_cw] * 900) / 100);
     ledc_update_duty(LEDC_LS_MODE, LEDC_LS_CH1_CHANNEL);
 
-    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH2_CHANNEL, (settings[med_indirect_ww] * 1024) / 100);
+    ledc_set_duty(LEDC_LS_MODE, LEDC_LS_CH2_CHANNEL, (settings[med_indirect_ww] * 900) / 100);
     ledc_update_duty(LEDC_LS_MODE, LEDC_LS_CH2_CHANNEL);
 }
 
@@ -221,19 +221,50 @@ static void handler_selectors_click(lv_event_t * e)
 
     if(code == LV_EVENT_SHORT_CLICKED)
     {
+        lv_color_t current_color = lv_obj_get_style_bg_color(obj, LV_PART_MAIN);
+
+        // Toggle zwischen btnDirect und btnIndirect Design
+        if (current_color.full == lv_color_hex(0xB96E48).full) { // Direktes Design
+            // Wechseln zu Indirektem Design
+            lv_obj_set_style_bg_color(obj, lv_color_hex(0x8DB7C7), 0);
+            lv_obj_set_style_shadow_color(obj, lv_color_hex(0x535E63), 0);
+        } else {
+            // Wechseln zu Direktem Design
+            lv_obj_set_style_bg_color(obj, lv_color_hex(0xB96E48), 0);
+            lv_obj_set_style_shadow_color(obj, lv_color_hex(0x642917), 0);
+        }
+
         ESP_LOGI(TAG, "click");
         if (obj == btnDirect)
         {
 
             if(noorMode == WORK_MODE)
             {
+                // Umschalten zwischen work_direct_cw und work_direct_ww
+                if(controlSelected == work_direct_cw)
+                {
+                    controlSelected = work_direct_ww;
+                    lv_slider_set_value(slider, settings[work_direct_ww], LV_ANIM_OFF);
+                }
+                else
+                {
                     controlSelected = work_direct_cw;
                     lv_slider_set_value(slider, settings[work_direct_cw], LV_ANIM_OFF);
+                }
             }
             else if (noorMode == MEDITATION_MODE)
             {
+                // Umschalten zwischen med_direct_cw und med_direct_ww
+                if(controlSelected == med_direct_cw)
+                {
+                    controlSelected = med_direct_ww;
+                    lv_slider_set_value(slider, settings[med_direct_ww], LV_ANIM_OFF);
+                }
+                else
+                {
                     controlSelected = med_direct_cw;
                     lv_slider_set_value(slider, settings[med_direct_cw], LV_ANIM_OFF);
+                }
             }
             else
                 ESP_LOGI(TAG, "unknown mode");
@@ -242,13 +273,29 @@ static void handler_selectors_click(lv_event_t * e)
             {
                 if(noorMode == WORK_MODE)
                 {
-                    controlSelected = work_indirect_cw;
-                    lv_slider_set_value(slider, settings[work_indirect_cw], LV_ANIM_OFF);
+                    if(controlSelected == work_indirect_cw)
+                    {
+                        controlSelected = work_indirect_ww;
+                        lv_slider_set_value(slider, settings[work_indirect_ww], LV_ANIM_OFF);
+                    }
+                    else
+                    {
+                        controlSelected = work_indirect_cw;
+                        lv_slider_set_value(slider, settings[work_indirect_cw], LV_ANIM_OFF);
+                    }
                 }
                 else if(noorMode == MEDITATION_MODE)
                 {
-                    controlSelected = med_indirect_cw;
-                    lv_slider_set_value(slider, settings[med_indirect_cw], LV_ANIM_OFF);
+                    if(controlSelected == med_indirect_cw)
+                    {
+                        controlSelected = med_indirect_ww;
+                        lv_slider_set_value(slider, settings[med_indirect_ww], LV_ANIM_OFF);
+                    }
+                    else
+                    {
+                        controlSelected = med_indirect_cw;
+                        lv_slider_set_value(slider, settings[med_indirect_cw], LV_ANIM_OFF);
+                    }
 
                 }
                 else
@@ -275,7 +322,7 @@ static void handler_selectors_longpress(lv_event_t * e)
             }
             else if (noorMode == MEDITATION_MODE)
             {
-                    controlSelected = med_direct_ww;
+                    controlSelected = med_direct_cw;
                     lv_slider_set_value(slider, settings[med_direct_ww], LV_ANIM_OFF);
             }
             else
@@ -291,8 +338,8 @@ static void handler_selectors_longpress(lv_event_t * e)
                 }
                 else if(noorMode == MEDITATION_MODE)
                 {
-                    controlSelected = med_indirect_ww;
-                    lv_slider_set_value(slider, settings[med_indirect_ww], LV_ANIM_OFF);
+                    controlSelected = med_indirect_cw;
+                    lv_slider_set_value(slider, settings[med_indirect_cw], LV_ANIM_OFF);
                 }
                 else
                     ESP_LOGI(TAG, "unknown mode");
@@ -306,7 +353,7 @@ static void handler_selectors_longpress(lv_event_t * e)
 
 static void slider_event_cb(lv_event_t * e)
 {
-    uint16_t g_value = (lv_slider_get_value(slider) * 1024) / 100;
+    uint16_t g_value = (lv_slider_get_value(slider) * 900) / 100;
 
     /*control the PWM signal*/
     switch(controlSelected)
@@ -332,6 +379,18 @@ static void slider_event_cb(lv_event_t * e)
     ESP_LOGI(TAG, "value %d to %d",g_value, controlSelected);
 }
 
+// // function to apply of the styles
+// void apply_warm_white_style(lv_obj_t *btn) {
+//     lv_obj_set_style_bg_color(btn, lv_color_hex(0xB96E48), 0); // warm white style
+//     lv_obj_set_style_shadow_color(btn, lv_color_hex(0x642917), 0);
+// }
+
+// void apply_cold_white_style(lv_obj_t *btn) {
+//     lv_obj_set_style_bg_color(btn, lv_color_hex(0x8DB7C7), 0); // cold white style
+//     lv_obj_set_style_shadow_color(btn, lv_color_hex(0x535E63), 0);
+// }
+
+
 void LightControlUI(void)
 {
     // General settings
@@ -356,7 +415,7 @@ void LightControlUI(void)
     lv_obj_set_style_shadow_opa(btnIndirect, LV_OPA_COVER, 0);
     lv_obj_set_style_shadow_width(btnIndirect, 12, 0);
     lv_obj_set_style_shadow_spread(btnIndirect, 12, 0);
-    lv_obj_add_event_cb(btnIndirect, handler_selectors_longpress, LV_EVENT_LONG_PRESSED , NULL);
+    //lv_obj_add_event_cb(btnIndirect, handler_selectors_longpress, LV_EVENT_LONG_PRESSED , NULL);
     lv_obj_add_event_cb(btnIndirect, handler_selectors_click, LV_EVENT_SHORT_CLICKED, NULL);
 
     // 1- 2 label indirect
@@ -375,7 +434,7 @@ void LightControlUI(void)
     lv_obj_set_style_shadow_opa(btnDirect, LV_OPA_COVER, 0);
     lv_obj_set_style_shadow_width(btnDirect, 12, 0);
     lv_obj_set_style_shadow_spread(btnDirect, 12, 0);
-    lv_obj_add_event_cb(btnDirect, handler_selectors_longpress, LV_EVENT_LONG_PRESSED , NULL);
+    // lv_obj_add_event_cb(btnDirect, handler_selectors_longpress, LV_EVENT_LONG_PRESSED , NULL);
     lv_obj_add_event_cb(btnDirect, handler_selectors_click, LV_EVENT_SHORT_CLICKED , NULL);
 
     // 1- 4 label direct
